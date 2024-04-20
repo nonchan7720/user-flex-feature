@@ -1,0 +1,11 @@
+version: '3.7'
+services:
+  dev:
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - ./:/src/
+      - ~/.gitconfig:/.gitconfig
+      - ~/.ssh/:/.ssh/
+    tty: true
