@@ -1,0 +1,103 @@
+openapi: 3.0.0
+info:
+  title: User flex feature
+  version: "1.0"
+tags:
+  - name: UserFlexFeatureService
+paths:
+  "/user-flex-feature/api/v1/updates/{key}":
+    post:
+      operationId: UserFlexFeatureService_RuleUpdate
+      responses:
+        "200":
+          description: A successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/v1RuleUpdateResponse"
+        "400":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/v1GeneralErrorResponse"
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserFlexFeatureServiceRuleUpdateBody"
+        required: true
+      tags:
+        - UserFlexFeatureService
+components:
+  schemas:
+    UserFlexFeatureServiceRuleUpdateBody:
+      type: object
+      properties:
+        rule:
+          $ref: "#/components/schemas/v1Rule"
+    v1GeneralErrorResponse:
+      type: object
+      properties:
+        errorCode:
+          type: string
+          enum:
+            - INVALID_PARAM
+        errorDetails:
+          type: string
+      required:
+        - errorCode
+        - errorDetails
+    v1Percentage:
+      type: object
+      properties:
+        value:
+          type: object
+          additionalProperties:
+            type: number
+            format: double
+    v1ProgressiveRollout:
+      type: object
+      properties:
+        initial:
+          $ref: "#/components/schemas/v1ProgressiveRolloutStep"
+        end:
+          $ref: "#/components/schemas/v1ProgressiveRolloutStep"
+    v1ProgressiveRolloutStep:
+      type: object
+      properties:
+        variationValue:
+          type: string
+        percentageValue:
+          type: number
+          format: double
+        dateValue:
+          type: string
+    v1Rule:
+      type: object
+      properties:
+        query:
+          type: string
+        name:
+          type: string
+        variationResult:
+          type: string
+        percentageValue:
+          $ref: "#/components/schemas/v1Percentage"
+        progressiveRolloutValue:
+          $ref: "#/components/schemas/v1ProgressiveRollout"
+        disableValue:
+          type: boolean
+    v1RuleUpdateResponse:
+      type: object
+      properties:
+        result:
+          type: boolean
+      required:
+        - result
