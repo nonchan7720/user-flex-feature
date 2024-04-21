@@ -1,0 +1,7 @@
+package: controller
+generate:
+  gin-server: true
+  embedded-spec: true
+  models: true
+  client: true
+output: pkg/interfaces/api/controller/server.gen.go
