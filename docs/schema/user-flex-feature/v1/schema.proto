@@ -1,0 +1,104 @@
+syntax = "proto3";
+
+option go_package = "./user-flex-feature";
+
+package user_flex_feature.v1;
+
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info: {
+    title: "User flex feature";
+    version: "1.0";
+  };
+  responses: [
+    {
+      key: "400";
+      value: {
+        schema: {
+          json_schema: {
+            ref: ".user_flex_feature.v1.GeneralErrorResponse"
+          }
+        }
+      }
+    }
+  ]
+};
+
+message GeneralErrorResponse {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      required: ["error_code", "error_details"]
+    }
+  };
+  string error_code = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    enum: ["INVALID_PARAM"]
+  }];
+  string error_details = 2;
+}
+
+service UserFlexFeatureService {
+  rpc RuleUpdate(RuleUpdateRequest) returns (RuleUpdateResponse) {
+    option (google.api.http) = {
+      post: "/user-flex-feature/api/v1/updates/{key}"
+      body: "*"
+    };
+  }
+}
+
+message Percentage {
+  map<string, double> value = 1;
+}
+
+message ProgressiveRolloutStep {
+  oneof variation {
+    string variation_value = 1;
+  }
+  oneof percentage {
+    double percentage_value = 2;
+  }
+  oneof date {
+    string date_value = 3;
+  }
+}
+
+message ProgressiveRollout {
+  ProgressiveRolloutStep initial = 1;
+  ProgressiveRolloutStep end = 2;
+}
+
+message Rule {
+  string query = 1;
+  string name = 2;
+  string variation_result = 3;
+  oneof percentage {
+    Percentage percentage_value = 4;
+  }
+  oneof progressive_rollout {
+    ProgressiveRollout progressive_rollout_value = 5;
+
+  }
+  oneof disable {
+    bool disable_value = 6;
+  }
+}
+
+message RuleUpdateRequest {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      required: ["key"]
+    }
+  };
+  string key = 1;
+  Rule rule = 2;
+}
+
+message RuleUpdateResponse {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      required: ["result"]
+    }
+  };
+  bool result = 1;
+}

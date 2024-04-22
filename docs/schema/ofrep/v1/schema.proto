@@ -1,0 +1,110 @@
+syntax = "proto3";
+
+package ofrep.v1;
+
+option go_package = "./ofrep";
+
+import "google/protobuf/struct.proto";
+
+message GeneralErrorResponse {
+  string error_details = 1;
+}
+
+message GetConfigurationRequest {
+  string if_none_match = 1;
+}
+
+message GetConfigurationResponse {
+  Configuration configuration = 1;
+  string e_tag = 2;
+}
+
+message EvaluateFlagRequest {
+  string key = 1;
+  EvaluationContext context = 2;
+}
+
+message EvaluateFlagResponse {
+  oneof result {
+    EvaluationSuccess success = 1;
+    EvaluationFailure failure = 2;
+  }
+}
+
+message EvaluateFlagsBulkRequest {
+  EvaluationContext context = 1;
+}
+
+message EvaluateFlagsBulkResponse {
+  repeated EvaluationResult flags = 1;
+  string e_tag = 2;
+}
+
+message Configuration {
+  string name = 1;
+  Capability capabilities = 2;
+}
+
+message Capability {
+  FeatureCacheInvalidation cache_invalidation = 1;
+}
+
+message FeatureCacheInvalidation {
+  Polling polling = 1;
+}
+
+message Polling {
+  bool enabled = 1;
+  double min_polling_interval = 2;
+}
+
+message EvaluationContext {
+  google.protobuf.Struct properties = 1;
+}
+
+message EvaluationSuccess {
+  string key = 1;
+  string reason = 2;
+  string variant = 3;
+  map<string, Metadata> metadata = 4;
+  oneof value {
+    bool bool_value = 5;
+    string string_value = 6;
+    int64 integer_value = 7;
+    double double_value = 8;
+    google.protobuf.Struct object_value = 9;
+  };
+}
+
+message EvaluationFailure {
+  string key = 1;
+  string error_code = 2;
+  string error_details = 3;
+}
+
+message Metadata {
+  oneof type {
+    bool boolean_value = 1;
+    string string_value = 2;
+    double number_value = 3;
+  }
+}
+
+message EvaluationResult {
+  oneof result {
+    EvaluationSuccess success = 1;
+    EvaluationFailure failure = 2;
+  }
+}
+
+message FlagNotFound {
+  string key = 1;
+  string error_code = 2;
+  string error_details = 3;
+}
+
+service OFREPService {
+  rpc GetConfiguration (GetConfigurationRequest) returns (GetConfigurationResponse);
+  rpc EvaluateFlag (EvaluateFlagRequest) returns (EvaluateFlagResponse);
+  rpc EvaluateFlagsBulk (EvaluateFlagsBulkRequest) returns (EvaluateFlagsBulkResponse);
+}

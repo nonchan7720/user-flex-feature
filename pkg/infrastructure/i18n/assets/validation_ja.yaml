@@ -1,0 +1,78 @@
+keys:
+  validation_date_invalid: must be a valid date
+  validation_date_out_of_range: the date is out of range
+  validation_empty: must be blank
+  validation_in_invalid: must be a valid value
+  validation_is utf_letter_numeric: must contain unicode letters and numbers only
+  validation_is_alpha: must contain English letters only
+  validation_is_alphanumeric: must contain English letters and digits only
+  validation_is_ascii: must contain ASCII characters only
+  validation_is_base64: must be encoded in Base64
+  validation_is_country_code_2_letter: must be a valid two-letter country code
+  validation_is_country_code_3_letter: must be a valid three-letter country code
+  validation_is_credit_card: must be a valid credit card number
+  validation_is_currency_code: must be valid ISO 4217 currency code
+  validation_is_data_uri: must be a Base64-encoded data URI
+  validation_is_dial_string: must be a valid dial string
+  validation_is_digit: must contain digits only
+  validation_is_dns_name: must be a valid DNS name
+  validation_is_domain: must be a valid domain
+  validation_is_e164_number: must be a valid E164 number
+  validation_is_email: must be a valid email address
+  validation_is_float: must be a floating point number
+  validation_is_full_width: must contain full-width characters
+  validation_is_half_width: must contain half-width characters
+  validation_is_hex_color: must be a valid hexadecimal color code
+  validation_is_hexadecimal: must be a valid hexadecimal number
+  validation_is_host: must be a valid IP address or DNS name
+  validation_is_int: must be an integer number
+  validation_is_ip: must be a valid IP address
+  validation_is_ipv4: must be a valid IPv4 address
+  validation_is_ipv6: must be a valid IPv6 address
+  validation_is_isbn: must be a valid ISBN
+  validation_is_isbn_10: must be a valid ISBN-10
+  validation_is_isbn_13: must be a valid ISBN-13
+  validation_is_json: must be in valid JSON format
+  validation_is_latitude: must be a valid latitude
+  validation_is_longitude: must be a valid longitude
+  validation_is_lower_case: must be in lower case
+  validation_is_mac_address: must be a valid MAC address
+  validation_is_mongo_id: must be a valid hex-encoded MongoDB ObjectId
+  validation_is_multibyte: must contain multibyte characters
+  validation_is_port: must be a valid port number
+  validation_is_printable_ascii: must contain printable ASCII characters only
+  validation_is_request_url: must be a valid request URL
+  validation_is_rgb_color: must be a valid RGB color code
+  validation_is_semver: must be a valid semantic version
+  validation_is_ssn: must be a valid social security number
+  validation_is_sub_domain: must be a valid subdomain
+  validation_is_upper_case: must be in upper case
+  validation_is_url: must be a valid URL
+  validation_is_utf_digit: must contain unicode decimal digits only
+  validation_is_utf_letter: must contain unicode letter characters only
+  validation_is_utf_numeric: must contain unicode number characters only
+  validation_is_uuid: must be a valid UUID
+  validation_is_uuid_v3: must be a valid UUID v3
+  validation_is_uuid_v4: must be a valid UUID v4
+  validation_is_uuid_v5: must be a valid UUID v5
+  validation_is_variable_width: must contain both full-width and half-width characters
+  validation_key_missing: required key is missing
+  validation_key_unexpected: key not expected
+  validation_key_wrong_type: key not the correct type
+  validation_length_empty_required: the value must be empty
+  validation_length_invalid: the length must be exactly {{.min}}
+  validation_length_out_of_range: the length must be between {{.min}} and {{.max}}
+  validation_length_too_long: the length must be no more than {{.max}}
+  validation_length_too_short: the length must be no less than {{.min}}
+  validation_match_invalid: must be in a valid format
+  validation_max_less_equal_than_required: must be no greater than {{.threshold}}
+  validation_max_less_than_required: must be less than {{.threshold}}
+  validation_min_greater_equal_than_required: must be no less than {{.threshold}}
+  validation_min_greater_than_required: must be greater than {{.threshold}}
+  validation_multiple_of_invalid: must be multiple of {{.base}}
+  validation_nil: must be blank
+  validation_nil_or_not_empty_required: "{{.name}}は必須です"
+  validation_not_in_invalid: must not be in list
+  validation_not_nil_required: is required
+  validation_request_is_request_uri: must be a valid request URI
+  validation_required: "{{.name}}は必須です"

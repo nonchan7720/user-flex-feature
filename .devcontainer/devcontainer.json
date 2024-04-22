@@ -27,7 +27,8 @@
         "ms-azuretools.vscode-docker",
         "Arjun.swagger-viewer",
         "zxh404.vscode-proto3",
-        "github.vscode-github-actions"
+        "github.vscode-github-actions",
+        "bufbuild.vscode-buf"
       ]
     }
   },

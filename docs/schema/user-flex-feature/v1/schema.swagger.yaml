@@ -1,0 +1,100 @@
+swagger: "2.0"
+info:
+  title: User flex feature
+  version: "1.0"
+tags:
+  - name: UserFlexFeatureService
+consumes:
+  - application/json
+produces:
+  - application/json
+paths:
+  /user-flex-feature/api/v1/updates/{key}:
+    post:
+      operationId: UserFlexFeatureService_RuleUpdate
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1RuleUpdateResponse'
+        "400":
+          description: ""
+          schema:
+            $ref: '#/definitions/v1GeneralErrorResponse'
+      parameters:
+        - name: key
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/UserFlexFeatureServiceRuleUpdateBody'
+      tags:
+        - UserFlexFeatureService
+definitions:
+  UserFlexFeatureServiceRuleUpdateBody:
+    type: object
+    properties:
+      rule:
+        $ref: '#/definitions/v1Rule'
+  v1GeneralErrorResponse:
+    type: object
+    properties:
+      errorCode:
+        type: string
+        enum:
+          - INVALID_PARAM
+      errorDetails:
+        type: string
+    required:
+      - errorCode
+      - errorDetails
+  v1Percentage:
+    type: object
+    properties:
+      value:
+        type: object
+        additionalProperties:
+          type: number
+          format: double
+  v1ProgressiveRollout:
+    type: object
+    properties:
+      initial:
+        $ref: '#/definitions/v1ProgressiveRolloutStep'
+      end:
+        $ref: '#/definitions/v1ProgressiveRolloutStep'
+  v1ProgressiveRolloutStep:
+    type: object
+    properties:
+      variationValue:
+        type: string
+      percentageValue:
+        type: number
+        format: double
+      dateValue:
+        type: string
+  v1Rule:
+    type: object
+    properties:
+      query:
+        type: string
+      name:
+        type: string
+      variationResult:
+        type: string
+      percentageValue:
+        $ref: '#/definitions/v1Percentage'
+      progressiveRolloutValue:
+        $ref: '#/definitions/v1ProgressiveRollout'
+      disableValue:
+        type: boolean
+  v1RuleUpdateResponse:
+    type: object
+    properties:
+      result:
+        type: boolean
+    required:
+      - result

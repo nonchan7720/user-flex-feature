@@ -1,0 +1,10 @@
+my-first-flag:
+  variations:
+    on: true
+    off: false
+  targeting:
+    - name: Rule 1
+      query: admin eq true
+      variation: on
+  defaultRule:
+    variation: off
