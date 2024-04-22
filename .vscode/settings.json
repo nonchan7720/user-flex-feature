@@ -3,5 +3,9 @@
   "gopls": {},
   "yaml.schemas": {
     "https://json.schemastore.org/buf.gen.json": "docs/**/buf.gen.go-server.yaml"
-  }
+  },
+  "cSpell.words": [
+    "ffclient",
+    "ofrep"
+  ]
 }
