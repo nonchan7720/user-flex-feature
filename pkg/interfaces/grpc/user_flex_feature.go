@@ -1,12 +1,16 @@
 package grpc
 
 import (
+	"log/slog"
 	"math"
+	"net"
 	"time"
 
 	"github.com/nonchan7720/user-flex-feature/pkg/container"
 	"github.com/nonchan7720/user-flex-feature/pkg/infrastructure/config"
+	inf_feature "github.com/nonchan7720/user-flex-feature/pkg/infrastructure/feature"
 	"github.com/nonchan7720/user-flex-feature/pkg/infrastructure/grpc/interceptor"
+	"github.com/nonchan7720/user-flex-feature/pkg/infrastructure/logging"
 	"github.com/nonchan7720/user-flex-feature/pkg/interfaces/grpc/ofrep"
 	user_flex_feature "github.com/nonchan7720/user-flex-feature/pkg/interfaces/grpc/user-flex-feature"
 	svc_feature "github.com/nonchan7720/user-flex-feature/pkg/services/feature"
@@ -19,12 +23,22 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
+type UserFlexFeatureServer struct {
+	*grpc.Server
+}
+
+func (s *UserFlexFeatureServer) Serve(lis net.Listener) {
+	if err := s.Server.Serve(lis); err != nil && err != grpc.ErrServerStopped {
+		slog.With(logging.WithStack(err)).Error("Shutdown.")
+	}
+}
+
 func init() {
 	do.Provide(container.Injector, ProvideUserFlexFeatureServer)
 	do.Provide(container.Injector, newUserFlexFeatureGrpcServer)
 }
 
-func newUserFlexFeatureGrpcServer(i *do.Injector) (*grpc.Server, error) {
+func newUserFlexFeatureGrpcServer(i *do.Injector) (*UserFlexFeatureServer, error) {
 	cfg := do.MustInvoke[*config.Config](i)
 	srv := do.MustInvoke[ServiceServer](i)
 	opts := []grpc.ServerOption{
@@ -48,10 +62,14 @@ func newUserFlexFeatureGrpcServer(i *do.Injector) (*grpc.Server, error) {
 	user_flex_feature.RegisterUserFlexFeatureServiceServer(s, srv)
 	ofrep.RegisterOFREPServiceServer(s, srv)
 	healthpb.RegisterHealthServer(s, health.NewServer())
-	return s, nil
+	return &UserFlexFeatureServer{
+		Server: s,
+	}, nil
 }
 
 func ProvideUserFlexFeatureServer(i *do.Injector) (ServiceServer, error) {
 	svc := do.MustInvoke[svc_feature.Service](i)
-	return newUserFlexFeatureServer(svc), nil
+	ff := do.MustInvoke[*inf_feature.Client](i)
+	cfg := do.MustInvoke[*config.Config](i)
+	return newUserFlexFeatureServer(svc, ff, cfg), nil
 }

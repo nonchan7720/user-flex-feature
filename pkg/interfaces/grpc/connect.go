@@ -7,14 +7,26 @@ import (
 	"math"
 	"time"
 
+	"github.com/nonchan7720/user-flex-feature/pkg/container"
 	"github.com/nonchan7720/user-flex-feature/pkg/infrastructure/config"
 	"github.com/nonchan7720/user-flex-feature/pkg/infrastructure/grpc/interceptor"
+	"github.com/samber/do"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 )
 
-func NewConnection(ctx context.Context, cfg *config.Grpc) (*grpc.ClientConn, error) {
+func init() {
+	do.ProvideNamed(container.Injector, "user-flex-feature-grpc", ProvideGrpcClientConn)
+}
+
+func ProvideGrpcClientConn(i *do.Injector) (*grpc.ClientConn, error) {
+	ctx := do.MustInvoke[context.Context](i)
+	cfg := do.MustInvoke[*config.Config](i)
+	return newGrpcConnection(ctx, &cfg.Grpc)
+}
+
+func newGrpcConnection(ctx context.Context, cfg *config.Grpc) (*grpc.ClientConn, error) {
 	endpoint := cfg.Endpoint()
 	creds := cfg.GrpcCredentials()
 	dialOpts := []grpc.DialOption{

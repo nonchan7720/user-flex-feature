@@ -3,12 +3,11 @@ package controller
 import (
 	"encoding/json"
 	"fmt"
-	"log/slog"
 
 	"github.com/gin-gonic/gin"
-	"github.com/nonchan7720/user-flex-feature/pkg/infrastructure/logging"
 	"github.com/nonchan7720/user-flex-feature/pkg/interfaces/grpc/ofrep"
 	"github.com/nonchan7720/user-flex-feature/pkg/utils"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -54,7 +53,11 @@ func (api *api) PostOfrepV1EvaluateFlags(c *gin.Context, params PostOfrepV1Evalu
 			JSON400: &resp,
 		}
 	}
-	evalCtx, err := structpb.NewStruct(*body.Context)
+	context := make(map[string]interface{})
+	if body.Context != nil {
+		context = *body.Context
+	}
+	evalCtx, err := structpb.NewStruct(context)
 	if err != nil {
 		resp := BulkEvaluationFailure{
 			ErrorCode:    string(INVALIDCONTEXT),
@@ -119,7 +122,11 @@ func (api *api) PostOfrepV1EvaluateFlagsKey(c *gin.Context, key string) PostOfre
 			JSON400: &resp,
 		}
 	}
-	evalCtx, err := structpb.NewStruct(*body.Context)
+	context := make(map[string]interface{})
+	if body.Context != nil {
+		context = *body.Context
+	}
+	evalCtx, err := structpb.NewStruct(context)
 	if err != nil {
 		resp := EvaluationFailure{
 			Key:          key,
@@ -138,7 +145,6 @@ func (api *api) PostOfrepV1EvaluateFlagsKey(c *gin.Context, key string) PostOfre
 	}
 	resp, err := api.ofrepClient.EvaluateFlag(ctx, in)
 	if err != nil {
-		slog.With(logging.WithStack(err)).ErrorContext(ctx, err.Error())
 		failure := resp.GetFailure()
 		if failure != nil {
 			resp := EvaluationFailure{
@@ -150,13 +156,25 @@ func (api *api) PostOfrepV1EvaluateFlagsKey(c *gin.Context, key string) PostOfre
 				JSON400: &resp,
 			}
 		} else {
-			resp := EvaluationFailure{
-				Key:          key,
-				ErrorCode:    GENERAL,
-				ErrorDetails: utils.String(fmt.Sprintf("Error while evaluating the flag: %s", key)),
+			var (
+				resp *EvaluationFailure
+			)
+			status := status.Convert(err)
+			if status != nil {
+				resp = &EvaluationFailure{}
+				if err := json.Unmarshal([]byte(status.Message()), &resp); err != nil {
+					resp = nil
+				}
+			}
+			if resp == nil {
+				resp = &EvaluationFailure{
+					Key:          key,
+					ErrorCode:    GENERAL,
+					ErrorDetails: utils.String(fmt.Sprintf("Error while evaluating the flag: %s", key)),
+				}
 			}
 			return PostOfrepV1EvaluateFlagsKeyResponse{
-				JSON400: &resp,
+				JSON400: resp,
 			}
 		}
 	}

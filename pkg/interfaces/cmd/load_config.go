@@ -8,11 +8,11 @@ type Config interface {
 	config.Config
 }
 
-func loadConfig[T config.ConfigLoader](configFilePath string) T {
+func loadConfig[T config.ConfigLoader](configFilePath string) *T {
 	var cfg T
 
 	if err := config.NewLoadYamlWithFile(configFilePath, &cfg); err != nil {
 		panic(err)
 	}
-	return cfg
+	return &cfg
 }

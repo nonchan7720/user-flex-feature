@@ -11,27 +11,28 @@ import (
 
 	"github.com/nonchan7720/user-flex-feature/pkg/domain/feature"
 	"github.com/nonchan7720/user-flex-feature/pkg/infrastructure/config"
+	inf_feature "github.com/nonchan7720/user-flex-feature/pkg/infrastructure/feature"
 	"github.com/nonchan7720/user-flex-feature/pkg/interfaces/grpc/internal"
 	"github.com/nonchan7720/user-flex-feature/pkg/interfaces/grpc/ofrep"
 	user_flex_feature "github.com/nonchan7720/user-flex-feature/pkg/interfaces/grpc/user-flex-feature"
 	svc_feature "github.com/nonchan7720/user-flex-feature/pkg/services/feature"
 	"github.com/nonchan7720/user-flex-feature/pkg/utils"
-	ffclient "github.com/thomaspoignant/go-feature-flag"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
-func newUserFlexFeatureServer(svc svc_feature.Service) *server {
+func newUserFlexFeatureServer(svc svc_feature.Service, ff *inf_feature.Client, cfg *config.Config) *server {
 	return &server{
 		svc: svc,
+		ff:  ff,
+		cfg: cfg,
 	}
 }
 
 type server struct {
 	svc svc_feature.Service
-
-	ff  *ffclient.GoFeatureFlag
+	ff  *inf_feature.Client
 	cfg *config.Config
 }
 
@@ -98,31 +99,13 @@ func (s *server) EvaluateFlag(ctx context.Context, in *ofrep.EvaluateFlagRequest
 	}
 	evalCtx, err := feature.NewContext(mp)
 	if err != nil {
-		failure := &ofrep.EvaluationFailure{
-			Key:          key,
-			ErrorCode:    err.Code,
-			ErrorDetails: err.Message,
-		}
-		return &ofrep.EvaluateFlagResponse{
-			Result: &ofrep.EvaluateFlagResponse_Failure{
-				Failure: failure,
-			},
-		}, status.Error(codes.InvalidArgument, err.ToJSON())
+		return nil, status.Error(codes.InvalidArgument, feature.NewGeneralError(err.ErrorCode, err.ErrorDetails, key).ToJSON())
 	}
 	defaultValue := "thisisadefaultvaluethatItest1233%%"
 	val, _ := s.ff.RawVariation(key, evalCtx, defaultValue)
 	if val.Reason == internal.ReasonError {
 		msg := fmt.Sprintf("Error while evaluating the flag: %s", key)
-		failure := &ofrep.EvaluationFailure{
-			Key:          key,
-			ErrorCode:    val.ErrorCode,
-			ErrorDetails: msg,
-		}
-		return &ofrep.EvaluateFlagResponse{
-			Result: &ofrep.EvaluateFlagResponse_Failure{
-				Failure: failure,
-			},
-		}, status.Error(codes.InvalidArgument, feature.NewGeneralError(val.ErrorCode, msg).ToJSON())
+		return nil, status.Error(codes.InvalidArgument, feature.NewGeneralError(val.ErrorCode, msg, key).ToJSON())
 	}
 	success := &ofrep.EvaluationSuccess{
 		Key:      key,

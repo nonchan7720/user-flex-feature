@@ -7,8 +7,9 @@ import (
 )
 
 type GeneralError struct {
-	Code    string `json:"code"`
-	Message string `json:"message"`
+	ErrorCode    string `json:"errorCode"`
+	ErrorDetails string `json:"errorDetails"`
+	Key          string `json:"key,omitempty"`
 }
 
 func (e *GeneralError) ToJSON() string {
@@ -21,9 +22,14 @@ func (e *GeneralError) Error() string {
 	return e.ToJSON()
 }
 
-func NewGeneralError(code interface{}, message string) *GeneralError {
+func NewGeneralError(errorCode interface{}, errorDetails string, keys ...string) *GeneralError {
+	var key string
+	if len(keys) > 0 {
+		key = keys[0]
+	}
 	return &GeneralError{
-		Code:    fmt.Sprintf("%s", code),
-		Message: message,
+		ErrorCode:    fmt.Sprintf("%s", errorCode),
+		ErrorDetails: errorDetails,
+		Key:          key,
 	}
 }

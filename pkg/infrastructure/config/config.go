@@ -19,7 +19,7 @@ type Config struct {
 	Retrievers      []retriever.Retriever `yaml:"retrievers"`
 	PollingInterval time.Duration         `yaml:"pollingInterval" default:"1m"`
 	Gateway         *Gateway              `yaml:"gateway"`
-	Grpc            Grpc                  `yaml:"grpc"`
+	Grpc            Grpc                  `yaml:"grpc,alias"`
 
 	Tracking Tracking  `yaml:"tracking"`
 	Logging  Logging   `yaml:"logging"`

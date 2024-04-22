@@ -4,14 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/nonchan7720/user-flex-feature/pkg/container"
 	"github.com/nonchan7720/user-flex-feature/pkg/interfaces/api/gateway"
-	"github.com/samber/do"
 )
-
-func init() {
-	do.Provide(container.Injector, ProvideServer)
-}
 
 type server struct {
 	api                    API

@@ -1,4 +1,4 @@
-package api
+package gin
 
 import (
 	"io"
@@ -7,11 +7,22 @@ import (
 
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
+	"github.com/nonchan7720/user-flex-feature/pkg/container"
 	"github.com/nonchan7720/user-flex-feature/pkg/infrastructure/config"
 	"github.com/nonchan7720/user-flex-feature/pkg/infrastructure/logging"
+	"github.com/samber/do"
 	sloggin "github.com/samber/slog-gin"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 )
+
+func init() {
+	do.Provide(container.Injector, Provide)
+}
+
+func Provide(i *do.Injector) (*gin.Engine, error) {
+	cfg := do.MustInvoke[*config.Config](i)
+	return newGin(cfg), nil
+}
 
 func newGin(cfg config.ConfigLoader) *gin.Engine {
 	if cfg.IsStaging() || cfg.IsProduction() {
@@ -28,13 +39,13 @@ func newGin(cfg config.ConfigLoader) *gin.Engine {
 		WithUserAgent: true,
 		WithRequestID: true,
 	}))
-	r.Use(Recovery())
+	r.Use(recovery())
 	r.Use(gzip.Gzip(gzip.DefaultCompression))
 	r.MaxMultipartMemory = 50 * 1024 * 1024 // 50MB
 	return r
 }
 
-func Recovery() gin.HandlerFunc {
+func recovery() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.Request.Context()
 		defer func() {

@@ -6,6 +6,7 @@ import (
 	"github.com/nonchan7720/user-flex-feature/pkg/container"
 	"github.com/nonchan7720/user-flex-feature/pkg/infrastructure/config"
 	"github.com/nonchan7720/user-flex-feature/pkg/infrastructure/feature/retriever"
+	"github.com/nonchan7720/user-flex-feature/pkg/infrastructure/logging"
 	"github.com/samber/do"
 	ffclient "github.com/thomaspoignant/go-feature-flag"
 	ff_retriever "github.com/thomaspoignant/go-feature-flag/retriever"
@@ -26,11 +27,11 @@ func Provide(i *do.Injector) (*Client, error) {
 }
 
 type Client struct {
-	flag *ffclient.GoFeatureFlag
+	*ffclient.GoFeatureFlag
 }
 
 func (c *Client) Shutdown() error {
-	c.flag.Close()
+	c.GoFeatureFlag.Close()
 	return nil
 }
 
@@ -46,11 +47,12 @@ func newClient(ctx context.Context, cfg *config.Config, retrievers ...ff_retriev
 		PollingInterval: cfg.PollingInterval,
 		Context:         ctx,
 		Retrievers:      retrievers,
+		Logger:          logging.StdLogger,
 	})
 	if err != nil {
 		return nil, err
 	}
 	return &Client{
-		flag: ff,
+		GoFeatureFlag: ff,
 	}, err
 }

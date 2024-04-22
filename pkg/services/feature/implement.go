@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/nonchan7720/user-flex-feature/pkg/container"
 	"github.com/nonchan7720/user-flex-feature/pkg/domain/feature"
 	"github.com/nonchan7720/user-flex-feature/pkg/infrastructure/config/validator"
 	"github.com/nonchan7720/user-flex-feature/pkg/infrastructure/feature/retriever"
@@ -12,6 +13,10 @@ import (
 	"github.com/samber/do"
 	ff_retriever "github.com/thomaspoignant/go-feature-flag/retriever"
 )
+
+func init() {
+	do.Provide(container.Injector, Provide)
+}
 
 type serviceImpl struct {
 	retrievers []ff_retriever.Retriever
