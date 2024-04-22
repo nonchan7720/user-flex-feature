@@ -7,7 +7,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-type Endpoint func(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error)
+type Endpoint func(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error
 
 type option struct {
 	runtimeOption  []runtime.ServeMuxOption

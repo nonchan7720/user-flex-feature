@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/nonchan7720/user-flex-feature/pkg/container"
+	"github.com/nonchan7720/user-flex-feature/pkg/interfaces/api/gateway"
 	"github.com/samber/do"
 )
 
@@ -14,26 +14,13 @@ func init() {
 }
 
 type server struct {
-	api           API
-	gatewayServer *runtime.ServeMux
+	api                    API
+	userFlexFeatureGateway *gateway.Gateway
 }
 
 var (
 	_ ServerInterface = (*server)(nil)
 )
-
-func ProvideServer(i *do.Injector) (ServerInterface, error) {
-	api := do.MustInvoke[API](i)
-	gatewayServer := do.MustInvoke[*runtime.ServeMux](i)
-	return newServer(api, gatewayServer), nil
-}
-
-func newServer(api API, gatewayServer *runtime.ServeMux) *server {
-	return &server{
-		api:           api,
-		gatewayServer: gatewayServer,
-	}
-}
 
 func (srv *server) GetOfrepV1Configuration(c *gin.Context, params GetOfrepV1ConfigurationParams) {
 	resp := srv.api.GetOfrepV1Configuration(c, params)
@@ -84,5 +71,5 @@ func (srv *server) PostOfrepV1EvaluateFlagsKey(c *gin.Context, key string) {
 }
 
 func (srv *server) UserFlexFeatureServiceRuleUpdate(c *gin.Context, key string) {
-	srv.gatewayServer.ServeHTTP(c.Writer, c.Request)
+	srv.userFlexFeatureGateway.ServeHTTP(c.Writer, c.Request)
 }

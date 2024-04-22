@@ -2,19 +2,22 @@ package gateway
 
 import (
 	"context"
-	"math"
 	"strings"
-	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/nonchan7720/user-flex-feature/pkg/infrastructure/config"
-	"github.com/nonchan7720/user-flex-feature/pkg/infrastructure/grpc/interceptor"
-	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/keepalive"
 )
 
-func NewGrpcGateway(ctx context.Context, cfg *config.Gateway, opts ...Option) *runtime.ServeMux {
+type Gateway struct {
+	*runtime.ServeMux
+	conn *grpc.ClientConn
+}
+
+func (g *Gateway) Conn() *grpc.ClientConn {
+	return g.conn
+}
+
+func NewGrpcGateway(ctx context.Context, conn *grpc.ClientConn, opts ...Option) *Gateway {
 	opt := &option{
 		headerMatchers: []runtime.HeaderMatcherFunc{matcher},
 	}
@@ -23,36 +26,19 @@ func NewGrpcGateway(ctx context.Context, cfg *config.Gateway, opts ...Option) *r
 	}
 	opt.runtimeOption = append(opt.runtimeOption, runtime.WithIncomingHeaderMatcher(wrapMatchers(opt.headerMatchers)))
 
-	addr := cfg.Grpc.Endpoint()
-	creds := cfg.GrpcCredentials()
-	dialOpts := []grpc.DialOption{
-		grpc.WithDefaultCallOptions(
-			grpc.MaxCallSendMsgSize(math.MaxInt64),
-			grpc.MaxCallRecvMsgSize(math.MaxInt64),
-		),
-		grpc.WithKeepaliveParams(
-			keepalive.ClientParameters{
-				Time:                5 * time.Minute,
-				Timeout:             10 * time.Second,
-				PermitWithoutStream: true,
-			},
-		),
-		grpc.WithStatsHandler(otelgrpc.NewClientHandler()),
-		grpc.WithTransportCredentials(creds),
-		grpc.WithChainUnaryInterceptor(
-			interceptor.AuthUnaryClientInterceptor(cfg.Grpc.Auth),
-		),
-	}
 	mux := runtime.NewServeMux(
 		opt.runtimeOption...,
 	)
 
 	for _, endpoint := range opt.endpoints {
-		if err := endpoint(ctx, mux, addr, dialOpts); err != nil {
+		if err := endpoint(ctx, mux, conn); err != nil {
 			panic(err)
 		}
 	}
-	return mux
+	return &Gateway{
+		ServeMux: mux,
+		conn:     conn,
+	}
 }
 
 func matcher(key string) (string, bool) {
