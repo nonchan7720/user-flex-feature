@@ -64,7 +64,6 @@ func (impl *serviceImpl) AppendOrUpdateRule(ctx context.Context, key string, rul
 	for err := range errCh {
 		return err
 	}
-	impl.ff.GetFlagsFromCache()
 	return nil
 }
 
