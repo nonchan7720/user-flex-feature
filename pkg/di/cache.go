@@ -13,5 +13,5 @@ func init() {
 }
 
 func cacheBackendDefault(i *do.Injector) (cache.Backend, error) {
-	return cache.NewInMemory(1 * time.Minute), nil
+	return cache.NewInMemory(10 * time.Second), nil
 }
