@@ -44,7 +44,9 @@ func (f *fileRetriever) AppendOrUpdateRule(ctx context.Context, key string, rule
 		if !ok {
 			return nil
 		}
-		v.AppendOrUpdateRule(rule)
+		if err := v.AppendOrUpdateRule(rule); err != nil {
+			return err
+		}
 		f, err := os.Create(f.Path)
 		if err != nil {
 			return err

@@ -53,14 +53,12 @@ func (impl *serviceImpl) AppendOrUpdateRule(ctx context.Context, key string, rul
 	if err := validator.Validate(&key, validation.Required); err != nil {
 		return err
 	}
-	updaters := retriever.FindUpdateRetriever(impl.retrievers...)
-	type update struct {
-		variationResults interface{}
-		err              error
+	if err := rule.Validate(); err != nil {
+		return err
 	}
-
+	updaters := retriever.FindUpdateRetriever(impl.retrievers...)
 	wg := sync.WaitGroup{}
-	updaterValueCh := make(chan update)
+	errCh := make(chan error)
 	done := make(chan struct{})
 	go func() {
 		wg.Wait()
@@ -72,34 +70,31 @@ func (impl *serviceImpl) AppendOrUpdateRule(ctx context.Context, key string, rul
 			wg.Add(1)
 			go func(ctx context.Context, updater retriever.UpdateRetriever, key string, rule *domain_feature.Rule) {
 				defer wg.Done()
-				var updateResult update
-				if result := updater.GetVariationResult(ctx, key, rule.VariationResult); result != nil {
-					updateResult.variationResults = result
-				}
 				if err := updater.AppendOrUpdateRule(ctx, key, rule); err != nil {
-					updateResult.err = err
+					errCh <- err
 				}
-				updaterValueCh <- updateResult
 			}(ctx, updater, key, rule)
 		}
 	}
 
-	updaterValues := make([]update, 0, len(updaters))
+	errs := make([]error, 0, len(updaters))
 flagLoop:
 	for {
 		select {
 		case <-done:
-			close(updaterValueCh)
+			close(errCh)
 			break flagLoop
-		case v, ok := <-updaterValueCh:
+		case err, ok := <-errCh:
 			if ok {
-				updaterValues = append(updaterValues, v)
+				if err != nil {
+					errs = append(errs, err)
+				}
 			}
 		}
 	}
-	for _, update := range updaterValues {
-		if update.err != nil {
-			return update.err
+	for _, err := range errs {
+		if err != nil {
+			return err
 		}
 	}
 	return impl.ff.Reset()

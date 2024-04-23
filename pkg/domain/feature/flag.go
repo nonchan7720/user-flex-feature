@@ -35,7 +35,7 @@ func (f *Flag) AppendOrUpdateRule(rule *Rule) error {
 		return nil
 	} else {
 		f.Rules = append(f.Rules, rule)
-		if err := rule.Validate(); err != nil {
+		if err := rule.AppendValidate(); err != nil {
 			return err
 		}
 		return nil
