@@ -92,22 +92,3 @@ func (r *inMemory) AppendOrUpdateRule(ctx context.Context, key string, rule *fea
 	r.mp.Store(key, nowFlag)
 	return nil
 }
-
-func (r *inMemory) GetVariations(ctx context.Context, key string) []string {
-	value, ok := r.mp.Load(key)
-	if !ok {
-		return nil
-	}
-	nowFlag, ok := value.(*feature.Flag)
-	if !ok {
-		return nil
-	}
-	if nowFlag.Variations != nil {
-		results := make([]string, len(*nowFlag.Variations))
-		for key := range *nowFlag.Variations {
-			results = append(results, key)
-		}
-		return results
-	}
-	return nil
-}

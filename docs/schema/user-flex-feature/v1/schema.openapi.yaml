@@ -42,6 +42,8 @@ components:
       properties:
         rule:
           $ref: "#/components/schemas/v1Rule"
+      required:
+        - rule
     v1GeneralErrorResponse:
       type: object
       properties:
@@ -82,11 +84,11 @@ components:
     v1Rule:
       type: object
       properties:
-        query:
-          type: string
         name:
           type: string
         variationResult:
+          type: string
+        query:
           type: string
         percentageValue:
           $ref: "#/components/schemas/v1Percentage"
@@ -94,6 +96,9 @@ components:
           $ref: "#/components/schemas/v1ProgressiveRollout"
         disableValue:
           type: boolean
+      required:
+        - name
+        - variationResult
     v1RuleUpdateResponse:
       type: object
       properties:

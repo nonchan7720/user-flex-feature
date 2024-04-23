@@ -69,9 +69,14 @@ message ProgressiveRollout {
 }
 
 message Rule {
-  string query = 1;
-  string name = 2;
-  string variation_result = 3;
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      required: ["name", "variation_result"]
+    }
+  };
+  string name = 1;
+  string variation_result = 2;
+  string query = 3;
   oneof percentage {
     Percentage percentage_value = 4;
   }
@@ -87,7 +92,7 @@ message Rule {
 message RuleUpdateRequest {
   option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
     json_schema: {
-      required: ["key"]
+      required: ["key", "rule"]
     }
   };
   string key = 1;

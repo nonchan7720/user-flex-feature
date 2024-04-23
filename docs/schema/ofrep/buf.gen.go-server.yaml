@@ -1,13 +1,13 @@
 version: v1
 plugins:
   - plugin: buf.build/protocolbuffers/go:v1.33.0
-    out: pkg/interfaces/grpc/
+    out: ../../../pkg/interfaces/grpc/
   - plugin: buf.build/grpc/go:v1.3.0
-    out: pkg/interfaces/grpc/
+    out: ../../../pkg/interfaces/grpc/
     opt:
       - require_unimplemented_servers=false
   - plugin: buf.build/grpc-ecosystem/gateway:v2.16.0
-    out: pkg/interfaces/grpc/
+    out: ../../../pkg/interfaces/grpc/
     opt:
       - logtostderr=true
       - allow_delete_body=true
