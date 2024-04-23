@@ -6,18 +6,17 @@ import (
 )
 
 type Rule struct {
-	Name               string              `yaml:"name"`
-	Query              string              `yaml:"query"`
-	VariationResult    string              `yaml:"variation"`
+	Name               string              `yaml:"name,omitempty"`
+	Query              string              `yaml:"query,omitempty"`
+	VariationResult    string              `yaml:"variation,omitempty"`
 	Percentages        map[string]float64  `yaml:"percentage,omitempty"`
 	ProgressiveRollout *ProgressiveRollout `yaml:"progressiveRollout,omitempty"`
 	Disable            *bool               `yaml:"disable,omitempty"`
 }
 
-func (r *Rule) Validate(variations []string) error {
+func (r *Rule) Validate() error {
 	return validator.ValidateStruct(r,
 		validation.Field(&r.Name, validation.Required),
 		validation.Field(&r.Query, validation.Required),
-		validation.Field(&r.VariationResult, validation.Required, validation.In(variations)),
 	)
 }

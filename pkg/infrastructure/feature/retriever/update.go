@@ -10,7 +10,6 @@ import (
 type UpdateRetriever interface {
 	CanUpdate(ctx context.Context) bool
 	AppendOrUpdateRule(ctx context.Context, key string, rule *feature.Rule) error
-	GetVariations(ctx context.Context, key string) []string
 }
 
 func FindUpdateRetriever(retrievers ...retriever.Retriever) []UpdateRetriever {
