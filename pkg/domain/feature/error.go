@@ -3,6 +3,7 @@ package feature
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 )
 
@@ -32,4 +33,12 @@ func NewGeneralError(errorCode interface{}, errorDetails string, keys ...string)
 		ErrorDetails: errorDetails,
 		Key:          key,
 	}
+}
+
+func IsGeneralError(err error) *GeneralError {
+	var val *GeneralError
+	if errors.As(err, &val) {
+		return val
+	}
+	return nil
 }

@@ -28,11 +28,16 @@ func (f *Flag) findRule(name string) (int, *Rule) {
 	return -1, nil
 }
 
-func (f *Flag) AppendOrUpdateRule(rule *Rule) {
-	idx, rule := f.findRule(rule.Name)
-	if rule != nil {
-		f.Rules[idx] = rule
+func (f *Flag) AppendOrUpdateRule(rule *Rule) error {
+	_, r := f.findRule(rule.Name)
+	if r != nil {
+		r.VariationResult = rule.VariationResult
+		return nil
 	} else {
 		f.Rules = append(f.Rules, rule)
+		if err := rule.Validate(); err != nil {
+			return err
+		}
+		return nil
 	}
 }
