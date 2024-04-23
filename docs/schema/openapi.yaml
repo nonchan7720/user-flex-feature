@@ -4,6 +4,8 @@ components:
       properties:
         rule:
           $ref: "#/components/schemas/v1Rule"
+      required:
+      - rule
       type: object
     booleanFlag:
       description: A boolean typed flag value
@@ -248,6 +250,9 @@ components:
           type: string
         variationResult:
           type: string
+      required:
+      - name
+      - variationResult
       type: object
     v1RuleUpdateResponse:
       properties:
