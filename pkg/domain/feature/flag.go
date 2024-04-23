@@ -3,15 +3,15 @@ package feature
 import "strings"
 
 type Flag struct {
-	Variations      *map[string]*interface{} `yaml:"variations,omitempty"`
-	Rules           []*Rule                  `yaml:"targeting,omitempty"`
-	DefaultRule     *Rule                    `yaml:"defaultRule,omitempty"`
-	Experimentation interface{}              `yaml:"experimentation,omitempty"`
-	Scheduled       interface{}              `yaml:"scheduledRollout,omitempty"`
-	TrackEvents     *bool                    `yaml:"trackEvents,omitempty"`
-	Disable         *bool                    `yaml:"disable,omitempty"`
-	Version         *string                  `yaml:"version,omitempty"`
-	Metadata        *map[string]interface{}  `yaml:"metadata,omitempty"`
+	Variations      map[string]interface{}  `yaml:"variations,omitempty"`
+	Rules           []*Rule                 `yaml:"targeting,omitempty"`
+	DefaultRule     *Rule                   `yaml:"defaultRule,omitempty"`
+	Experimentation interface{}             `yaml:"experimentation,omitempty"`
+	Scheduled       interface{}             `yaml:"scheduledRollout,omitempty"`
+	TrackEvents     *bool                   `yaml:"trackEvents,omitempty"`
+	Disable         *bool                   `yaml:"disable,omitempty"`
+	Version         *string                 `yaml:"version,omitempty"`
+	Metadata        *map[string]interface{} `yaml:"metadata,omitempty"`
 }
 
 func (f *Flag) FindRule(name string) *Rule {
