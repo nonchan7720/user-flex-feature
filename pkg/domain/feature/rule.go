@@ -17,6 +17,14 @@ type Rule struct {
 func (r *Rule) Validate() error {
 	return validator.ValidateStruct(r,
 		validation.Field(&r.Name, validation.Required),
+		validation.Field(&r.VariationResult, validation.Required),
+	)
+}
+
+func (r *Rule) AppendValidate() error {
+	return validator.ValidateStruct(r,
+		validation.Field(&r.Name, validation.Required),
 		validation.Field(&r.Query, validation.Required),
+		validation.Field(&r.VariationResult, validation.Required),
 	)
 }
