@@ -12,7 +12,6 @@ import (
 	"github.com/nonchan7720/user-flex-feature/pkg/domain/feature"
 	"github.com/nonchan7720/user-flex-feature/pkg/infrastructure/config"
 	inf_feature "github.com/nonchan7720/user-flex-feature/pkg/infrastructure/feature"
-	"github.com/nonchan7720/user-flex-feature/pkg/interfaces/grpc/internal"
 	"github.com/nonchan7720/user-flex-feature/pkg/interfaces/grpc/ofrep"
 	user_flex_feature "github.com/nonchan7720/user-flex-feature/pkg/interfaces/grpc/user-flex-feature"
 	svc_feature "github.com/nonchan7720/user-flex-feature/pkg/services/feature"
@@ -97,15 +96,18 @@ func (s *server) EvaluateFlag(ctx context.Context, in *ofrep.EvaluateFlagRequest
 			mp = v.AsMap()
 		}
 	}
-	evalCtx, err := feature.NewContext(mp)
-	if err != nil {
+	var evalCtx feature.Context
+	if eval, err := feature.NewContext(mp); err != nil {
 		return nil, status.Error(codes.InvalidArgument, feature.NewGeneralError(err.ErrorCode, err.ErrorDetails, key).ToJSON())
+	} else {
+		evalCtx = eval
 	}
-	defaultValue := "thisisadefaultvaluethatItest1233%%"
-	val, _ := s.ff.RawVariation(key, evalCtx, defaultValue)
-	if val.Reason == internal.ReasonError {
-		msg := fmt.Sprintf("Error while evaluating the flag: %s", key)
-		return nil, status.Error(codes.InvalidArgument, feature.NewGeneralError(val.ErrorCode, msg, key).ToJSON())
+	val, err := s.svc.EvaluateFlag(ctx, key, evalCtx)
+	if err != nil {
+		if generalErr := feature.IsGeneralError(err); generalErr != nil {
+			return nil, status.Error(codes.InvalidArgument, generalErr.ToJSON())
+		}
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 	success := &ofrep.EvaluationSuccess{
 		Key:      key,
@@ -128,26 +130,23 @@ func (s *server) EvaluateFlagsBulk(ctx context.Context, in *ofrep.EvaluateFlagsB
 			mp = v.AsMap()
 		}
 	}
-	evalCtx, err := feature.NewContext(mp)
-	if err != nil {
+	var evalCtx feature.Context
+	if eval, err := feature.NewContext(mp); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.ToJSON())
+	} else {
+		evalCtx = eval
 	}
 
 	var successes []*ofrep.EvaluationSuccess
-	allFlags := s.ff.AllFlagsState(evalCtx)
-	flags := allFlags.GetFlags()
+	flags := s.svc.EvaluateFlagsBulk(ctx, evalCtx)
 	for key, val := range flags {
-		value := val.Value
-		if val.Reason == internal.ReasonError {
-			value = nil
-		}
 		success := &ofrep.EvaluationSuccess{
 			Key:      key,
 			Reason:   val.Reason,
 			Variant:  val.VariationType,
 			Metadata: convertMetadata(val.Metadata),
 		}
-		convertValue(value, success)
+		convertValue(val.Value, success)
 		successes = append(successes, success)
 	}
 	sort.Slice(successes, func(i, j int) bool {
