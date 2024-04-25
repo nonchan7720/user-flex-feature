@@ -56,7 +56,7 @@ func serverExecute(ctx context.Context, args *commonArgs) {
 	}
 	go func() {
 		slog.Info(fmt.Sprintf("Start grpc server: :%d", cfg.Grpc.Port))
-		srv.Serve(lis)
+		srv.Serve(lis, cfg.IsRaftCluster())
 	}()
 	var gatewayShutdown GatewayShutdown
 	if cfg.Gateway != nil {
@@ -68,9 +68,20 @@ func serverExecute(ctx context.Context, args *commonArgs) {
 	slog.Info("shutting down gracefully, press Ctrl+C again to force")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	srv.GracefulStop()
+	timer := time.NewTimer(10 * time.Second)
+	stopped := make(chan struct{})
+	go func() {
+		srv.GracefulStop()
+		close(stopped)
+	}()
 	if gatewayShutdown != nil {
 		gatewayShutdown(ctx)
+	}
+	select {
+	case <-timer.C:
+		srv.Stop()
+	case <-stopped:
+		timer.Stop()
 	}
 	_ = container.Injector.Shutdown()
 	slog.Info("Server exiting")
