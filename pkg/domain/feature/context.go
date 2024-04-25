@@ -38,32 +38,32 @@ func NewContext(ctx map[string]interface{}) (Context, *GeneralError) {
 	return nil, NewGeneralError(TARGETINGKEYMISSING, "User flex feature has received no targetingKey or a none string value that is not a string.")
 }
 
-func convertEvaluationCtxFromRequest(targetingKey string, custom map[string]interface{}) *context {
-	ctx := ffcontext.NewEvaluationContextBuilder(targetingKey)
+func convertEvaluationCtxFromRequest(targetingKey string, custom map[string]interface{}) *ctx {
+	c := ffcontext.NewEvaluationContextBuilder(targetingKey)
 	for k, v := range custom {
 		switch val := v.(type) {
 		case float64:
 			if isIntegral(val) {
-				ctx.AddCustom(k, int(val))
+				c.AddCustom(k, int(val))
 				continue
 			}
-			ctx.AddCustom(k, val)
+			c.AddCustom(k, val)
 		default:
-			ctx.AddCustom(k, val)
+			c.AddCustom(k, val)
 		}
 	}
-	return &context{ctx.Build()}
+	return &ctx{c.Build()}
 }
 
 func isIntegral(val float64) bool {
 	return val == float64(int64(val))
 }
 
-type context struct {
+type ctx struct {
 	ffcontext.Context
 }
 
-func (c *context) Hash(key string) string {
+func (c *ctx) Hash(key string) string {
 	mp := map[string]interface{}{
 		"key":     key,
 		"context": c.Context,
