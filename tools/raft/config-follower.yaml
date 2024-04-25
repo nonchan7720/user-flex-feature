@@ -1,0 +1,23 @@
+appEnv: local
+retrievers:
+  - type: file
+    file:
+      path: feature-flag/file.yaml
+grpc: &grpc
+  port: 40002
+  endpoint: localhost
+gateway:
+  grpc: *grpc
+  port: 8888
+logging:
+  level: debug
+  handler:
+    - json
+    - datadog
+tracking:
+  enabled: false
+  agentAddr: otel-collector:4317
+  environment: local
+raft:
+  id: local-2
+  join: localhost:40001
