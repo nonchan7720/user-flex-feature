@@ -17,7 +17,7 @@ type fileRetriever struct {
 }
 
 var (
-	_ UpdateRetriever = (*fileRetriever)(nil)
+	_ feature.UpdateRetriever = (*fileRetriever)(nil)
 )
 
 func (f *fileRetriever) CanUpdate(_ context.Context) bool {

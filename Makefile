@@ -32,13 +32,18 @@ protoc/dev:
 
 .PHONY: protoc/uff
 protoc/uff: protoc/dev
-	@cd docs/schema/user-flex-feature ; buf generate --template buf.gen.go-server.yaml
+	@buf generate --template docs/schema/user-flex-feature/buf.gen.go-server.yaml --path docs/schema/user-flex-feature/v1/schema.proto
 	@swagger2openapi --outfile docs/schema/user-flex-feature/v1/schema.openapi.yaml docs/schema/user-flex-feature/v1/schema.swagger.yaml
 	@go run tools/openapi/main.go docs/schema/user-flex-feature/v1/schema.openapi.yaml docs/schema/ofrep/v1/openapi.yaml  > docs/schema/openapi.yaml
 
+.PHONY: protoc/uff-raft
+protoc/uff-raft: protoc/dev
+	@buf generate --template docs/schema/user-flex-feature-raft/buf.gen.go-server.yaml --path docs/schema/user-flex-feature-raft/v1/schema.proto
+	@swagger2openapi --outfile docs/schema/user-flex-feature-raft/v1/schema.openapi.yaml docs/schema/user-flex-feature-raft/v1/schema.swagger.yaml
+
 .PHONY: protoc/ofrep
 protoc/ofrep: protoc/dev
-	@cd docs/schema/ofrep buf generate --template buf.gen.go-server.yaml
+	@buf generate --template docs/schema/ofrep/buf.gen.go-server.yaml --path docs/schema/ofrep/v1/schema.proto
 
 .PHONY: codegen/api
 codegen/api: tools/oapi

@@ -1,21 +1,14 @@
 package retriever
 
 import (
-	"context"
-
 	"github.com/nonchan7720/user-flex-feature/pkg/domain/feature"
 	"github.com/thomaspoignant/go-feature-flag/retriever"
 )
 
-type UpdateRetriever interface {
-	CanUpdate(ctx context.Context) bool
-	AppendOrUpdateRule(ctx context.Context, key string, rule *feature.Rule) error
-}
-
-func FindUpdateRetriever(retrievers ...retriever.Retriever) []UpdateRetriever {
-	results := make([]UpdateRetriever, 0, len(retrievers))
+func FindUpdateRetriever(retrievers ...retriever.Retriever) []feature.UpdateRetriever {
+	results := make([]feature.UpdateRetriever, 0, len(retrievers))
 	for _, retriever := range retrievers {
-		if v, ok := retriever.(UpdateRetriever); ok {
+		if v, ok := retriever.(feature.UpdateRetriever); ok {
 			results = append(results, v)
 		}
 	}

@@ -1,0 +1,64 @@
+openapi: 3.0.0
+info:
+  title: User flex feature raft server
+  version: "1.0"
+tags:
+  - name: RaftService
+paths:
+  /user-flex-feature/api/v1/raft/join:
+    post:
+      operationId: RaftService_Join
+      responses:
+        "200":
+          description: A successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/v1EmptyResponse"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/v1JoinRequest"
+        required: true
+      tags:
+        - RaftService
+  /user-flex-feature/api/v1/raft/leave:
+    post:
+      operationId: RaftService_Leave
+      responses:
+        "200":
+          description: A successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/v1EmptyResponse"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/v1LeaveRequest"
+        required: true
+      tags:
+        - RaftService
+components:
+  schemas:
+    v1EmptyResponse:
+      type: object
+    v1JoinRequest:
+      type: object
+      properties:
+        id:
+          type: string
+        addr:
+          type: string
+      required:
+        - id
+        - addr
+    v1LeaveRequest:
+      type: object
+      properties:
+        id:
+          type: string
+      required:
+        - id

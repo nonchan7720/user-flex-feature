@@ -3,33 +3,20 @@ package feature
 import (
 	"context"
 
-	"github.com/nonchan7720/user-flex-feature/pkg/container"
+	"github.com/nonchan7720/user-flex-feature/pkg/domain/feature"
 	"github.com/nonchan7720/user-flex-feature/pkg/infrastructure/config"
-	"github.com/nonchan7720/user-flex-feature/pkg/infrastructure/feature/retriever"
 	"github.com/nonchan7720/user-flex-feature/pkg/infrastructure/logging"
 	"github.com/samber/do"
 	ffclient "github.com/thomaspoignant/go-feature-flag"
 	ff_retriever "github.com/thomaspoignant/go-feature-flag/retriever"
 )
 
-func init() {
-	do.Provide(container.Injector, Provide)
-}
-
-func Provide(i *do.Injector) (*Client, error) {
-	ctx, _ := do.Invoke[context.Context](i)
-	cfg := do.MustInvoke[*config.Config](i)
-	retrievers, err := retriever.New(cfg)
-	if err != nil {
-		return nil, err
-	}
-	return newClient(ctx, cfg, retrievers...)
-}
-
 type Client struct {
 	*ffclient.GoFeatureFlag
 
-	ffConfig ffclient.Config
+	ffConfig         ffclient.Config
+	updateRetrievers []feature.UpdateRetriever
+	updater          feature.Updater
 }
 
 func (c *Client) Shutdown() error {
@@ -45,11 +32,19 @@ func (c *Client) Reset() error {
 	return err
 }
 
+func (c *Client) Provider() *ffclient.GoFeatureFlag {
+	return c.GoFeatureFlag
+}
+
+func (c *Client) AppendOrUpdateRule(ctx context.Context, key string, rule *feature.Rule) error {
+	return c.updater.AppendOrUpdateRule(ctx, c.updateRetrievers, key, rule)
+}
+
 var (
 	_ do.Shutdownable = &Client{}
 )
 
-func newClient(ctx context.Context, cfg *config.Config, retrievers ...ff_retriever.Retriever) (*Client, error) {
+func newClient(ctx context.Context, cfg *config.Config, updater feature.Updater, updateRetrievers []feature.UpdateRetriever, retrievers ...ff_retriever.Retriever) (*Client, error) {
 	if ctx == nil {
 		ctx = context.Background()
 	}
@@ -64,7 +59,9 @@ func newClient(ctx context.Context, cfg *config.Config, retrievers ...ff_retriev
 		return nil, err
 	}
 	return &Client{
-		GoFeatureFlag: ff,
-		ffConfig:      ffConfig,
+		GoFeatureFlag:    ff,
+		ffConfig:         ffConfig,
+		updateRetrievers: updateRetrievers,
+		updater:          updater,
 	}, err
 }

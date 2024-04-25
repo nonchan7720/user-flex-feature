@@ -11,7 +11,9 @@
       "mode": "auto",
       "program": "${workspaceFolder}",
       "args": [
-        "server"
+        "server",
+        // "--config",
+        // "config-follower2.yaml"
       ]
     }
   ]

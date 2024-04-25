@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+option go_package = "./user-flex-feature-raft";
+
+package user_flex_feature_raft.v1;
+
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info: {
+    title: "User flex feature raft server";
+    version: "1.0";
+  };
+};
+
+service RaftService {
+  rpc Join (JoinRequest) returns (EmptyResponse) {
+    option (google.api.http) = {
+      post: "/user-flex-feature/api/v1/raft/join"
+      body: "*"
+    };
+  }
+  rpc Leave (LeaveRequest) returns (EmptyResponse) {
+    option (google.api.http) = {
+      post: "/user-flex-feature/api/v1/raft/leave"
+      body: "*"
+    };
+  }
+}
+
+message JoinRequest {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      required: ["id", "addr"]
+    }
+  };
+  string id = 1;
+  string addr = 2;
+}
+
+message LeaveRequest {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      required: ["id"]
+    }
+  };
+  string id = 1;
+}
+
+message EmptyResponse {}

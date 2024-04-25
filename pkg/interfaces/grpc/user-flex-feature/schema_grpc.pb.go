@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             (unknown)
-// source: v1/schema.proto
+// source: docs/schema/user-flex-feature/v1/schema.proto
 
 package user_flex_feature
 
@@ -103,5 +103,5 @@ var UserFlexFeatureService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "v1/schema.proto",
+	Metadata: "docs/schema/user-flex-feature/v1/schema.proto",
 }

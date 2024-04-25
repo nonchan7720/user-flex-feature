@@ -8,12 +8,15 @@ import (
 	"fmt"
 	"log/slog"
 	"sort"
+	"time"
 
+	hc_raft "github.com/hashicorp/raft"
 	"github.com/nonchan7720/user-flex-feature/pkg/domain/feature"
 	"github.com/nonchan7720/user-flex-feature/pkg/infrastructure/config"
-	inf_feature "github.com/nonchan7720/user-flex-feature/pkg/infrastructure/feature"
 	"github.com/nonchan7720/user-flex-feature/pkg/interfaces/grpc/ofrep"
 	user_flex_feature "github.com/nonchan7720/user-flex-feature/pkg/interfaces/grpc/user-flex-feature"
+	user_flex_feature_raft "github.com/nonchan7720/user-flex-feature/pkg/interfaces/grpc/user-flex-feature-raft"
+	"github.com/nonchan7720/user-flex-feature/pkg/interfaces/raft"
 	svc_feature "github.com/nonchan7720/user-flex-feature/pkg/services/feature"
 	"github.com/nonchan7720/user-flex-feature/pkg/utils"
 	"google.golang.org/grpc/codes"
@@ -21,18 +24,20 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
-func newUserFlexFeatureServer(svc svc_feature.Service, ff *inf_feature.Client, cfg *config.Config) *server {
+func newUserFlexFeatureServer(svc svc_feature.Service, ff feature.Feature, raft *raft.Raft, cfg *config.Config) *server {
 	return &server{
-		svc: svc,
-		ff:  ff,
-		cfg: cfg,
+		cfg:  cfg,
+		svc:  svc,
+		ff:   ff,
+		raft: raft,
 	}
 }
 
 type server struct {
-	svc svc_feature.Service
-	ff  *inf_feature.Client
-	cfg *config.Config
+	cfg  *config.Config
+	svc  svc_feature.Service
+	ff   feature.Feature
+	raft *raft.Raft
 }
 
 var (
@@ -40,6 +45,16 @@ var (
 )
 
 func (s *server) RuleUpdate(ctx context.Context, in *user_flex_feature.RuleUpdateRequest) (*user_flex_feature.RuleUpdateResponse, error) {
+	if s.cfg.IsRaftCluster() {
+		if s.raft.State() != hc_raft.Leader {
+			client, err := leader[user_flex_feature.UserFlexFeatureServiceClient](ctx, s.raft)
+			if err != nil {
+				return nil, err
+			}
+			return client.RuleUpdate(ctx, in)
+		}
+	}
+
 	rule := in.GetRule()
 	if rule == nil {
 		return nil, status.Error(codes.InvalidArgument, "rule is empty.")
@@ -181,6 +196,66 @@ func (s *server) GetConfiguration(ctx context.Context, in *ofrep.GetConfiguratio
 		Configuration: conf,
 		ETag:          etag(conf),
 	}, nil
+}
+
+func (s *server) Join(ctx context.Context, in *user_flex_feature_raft.JoinRequest) (*user_flex_feature_raft.EmptyResponse, error) {
+	if !s.cfg.IsRaftCluster() {
+		return nil, status.Error(codes.Unimplemented, "Un running raft cluster")
+	}
+	if s.raft.State() != hc_raft.Leader {
+		client, err := leader[user_flex_feature_raft.RaftServiceClient](ctx, s.raft)
+		if err != nil {
+			return nil, err
+		}
+		return client.Join(ctx, in)
+	}
+	nodeId := hc_raft.ServerID(in.Id)
+	nodeAddr := hc_raft.ServerAddress(in.Addr)
+
+	configFuture := s.raft.GetConfiguration()
+	if err := configFuture.Error(); err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	for _, srv := range configFuture.Configuration().Servers {
+		if srv.ID == nodeId || srv.Address == nodeAddr {
+			if srv.Address == nodeAddr && srv.ID == nodeId {
+				return nil, status.Error(codes.AlreadyExists, "Already exists.")
+			}
+			future := s.raft.RemoveServer(srv.ID, 0, 0)
+			if err := future.Error(); err != nil {
+				return nil, status.Error(codes.Internal, fmt.Sprintf("error removing existing node %s at %s: %s", nodeId, nodeAddr, err))
+			}
+		}
+	}
+	timeout := 10 * time.Second
+	if err := s.raft.AddVoter(hc_raft.ServerID(in.Id), hc_raft.ServerAddress(in.Addr), 0, timeout).Error(); err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	return &user_flex_feature_raft.EmptyResponse{}, nil
+}
+
+func (s *server) Leave(ctx context.Context, in *user_flex_feature_raft.LeaveRequest) (*user_flex_feature_raft.EmptyResponse, error) {
+	if !s.cfg.IsRaftCluster() {
+		return nil, status.Error(codes.Unimplemented, "Un running raft cluster")
+	}
+	if s.raft.State() != hc_raft.Leader {
+		client, err := leader[user_flex_feature_raft.RaftServiceClient](ctx, s.raft)
+		if err != nil {
+			return nil, err
+		}
+		return client.Leave(ctx, in)
+	}
+	nodeId := hc_raft.ServerID(in.Id)
+	future := s.raft.RemoveServer(nodeId, 0, 0)
+	if err := future.Error(); err != nil {
+		slog.Warn(fmt.Sprintf("error removing existing node %s: %s", nodeId, err))
+	}
+	return &user_flex_feature_raft.EmptyResponse{}, nil
+}
+
+func (s *server) JoinCluster() error {
+	s.raft.Join()
+	return s.raft.Error()
 }
 
 func convertMetadata(metadata map[string]interface{}) map[string]*ofrep.Metadata {

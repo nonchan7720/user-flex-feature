@@ -20,6 +20,7 @@ type Config struct {
 	PollingInterval time.Duration         `yaml:"pollingInterval" default:"1m"`
 	Gateway         *Gateway              `yaml:"gateway"`
 	Grpc            Grpc                  `yaml:"grpc,alias"`
+	Raft            *Raft                 `yaml:"raft"`
 
 	Tracking Tracking  `yaml:"tracking"`
 	Logging  Logging   `yaml:"logging"`
@@ -67,6 +68,10 @@ func (c Config) OTEL() Tracking {
 
 func (c *Config) SetupLog() {
 	c.Logging.SetupLog(c.Tracking)
+}
+
+func (c *Config) IsRaftCluster() bool {
+	return c.Raft != nil
 }
 
 var (
