@@ -10,7 +10,7 @@ import (
 type Tracking struct {
 	Enabled     bool   `yaml:"enabled" default:"false"`
 	AgentAddr   string `yaml:"agentAddr"`
-	ServiceName string `yaml:"serviceName" default:"bpo-uploader"`
+	ServiceName string `yaml:"serviceName" default:"user-flex-feature"`
 	Environment string `yaml:"environment" default:"prod"`
 }
 
