@@ -4,16 +4,12 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"math"
-	"time"
 
 	"github.com/nonchan7720/user-flex-feature/pkg/container"
 	"github.com/nonchan7720/user-flex-feature/pkg/infrastructure/config"
-	"github.com/nonchan7720/user-flex-feature/pkg/infrastructure/grpc/interceptor"
+	inf_grpc "github.com/nonchan7720/user-flex-feature/pkg/infrastructure/grpc"
 	"github.com/samber/do"
-	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/keepalive"
 )
 
 func init() {
@@ -28,26 +24,7 @@ func ProvideGrpcClientConn(i *do.Injector) (*grpc.ClientConn, error) {
 
 func newGrpcConnection(ctx context.Context, cfg *config.Grpc) (*grpc.ClientConn, error) {
 	endpoint := cfg.Endpoint()
-	creds := cfg.GrpcCredentials()
-	dialOpts := []grpc.DialOption{
-		grpc.WithDefaultCallOptions(
-			grpc.MaxCallSendMsgSize(math.MaxInt64),
-			grpc.MaxCallRecvMsgSize(math.MaxInt64),
-		),
-		grpc.WithKeepaliveParams(
-			keepalive.ClientParameters{
-				Time:                5 * time.Minute,
-				Timeout:             10 * time.Second,
-				PermitWithoutStream: true,
-			},
-		),
-		grpc.WithStatsHandler(otelgrpc.NewClientHandler()),
-		grpc.WithTransportCredentials(creds),
-		grpc.WithChainUnaryInterceptor(
-			interceptor.AuthUnaryClientInterceptor(cfg.Auth),
-		),
-	}
-	conn, err := grpc.DialContext(ctx, endpoint, dialOpts...)
+	conn, err := inf_grpc.NewGrpcConnection(ctx, endpoint, cfg.GrpcCredentials(), cfg.Auth)
 	if err != nil {
 		return nil, err
 	}
