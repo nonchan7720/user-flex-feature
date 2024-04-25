@@ -23,7 +23,7 @@ type inMemory struct {
 
 var (
 	_ retriever.InitializableRetriever = (*inMemory)(nil)
-	_ UpdateRetriever                  = (*inMemory)(nil)
+	_ feature.UpdateRetriever          = (*inMemory)(nil)
 )
 
 func newInMemory(cfg *config.InMemory) *inMemory {
