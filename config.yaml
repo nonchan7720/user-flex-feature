@@ -18,3 +18,4 @@ tracking:
   enabled: false
   agentAddr: otel-collector:4317
   environment: local
+raft: {}
